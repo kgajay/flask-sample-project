@@ -2,6 +2,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from app import db
 
+# http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
 
 class BucketList(db.Model):
     """This class represents the bucketlist table."""

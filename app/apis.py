@@ -130,3 +130,17 @@
 #         abort(404)
 #     task.delete()
 #     return jsonify({'status': 'success', 'message': 'Task with id: {} deleted successfully!!'.format(task_id)})
+
+
+class SomeObject(object):
+    """
+        Some object to test check output
+    """
+
+    def __init__(self, id, name, full_name):
+        self.id = id
+        self.name = name
+        self.full_name = full_name
+
+    def __repr__(self):
+        return "SomeObject id {}, name {}, fullname: {}".format(self.id, self.name, self.full_name)

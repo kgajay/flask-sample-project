@@ -1,11 +1,30 @@
-from flask import jsonify, request, Flask, abort, make_response
+import logging
+
+from flask import jsonify, request, Flask, abort, make_response, logging
+from flask_httpauth import HTTPBasicAuth
 from flask_sqlalchemy import SQLAlchemy
 
 # local import
+from app.apis import SomeObject
 from instance.config import app_config
 
 # initialize sql-alchemy
 db = SQLAlchemy()
+# https://flask-httpauth.readthedocs.io/en/latest/
+# http://flask.pocoo.org/snippets/8/
+auth = HTTPBasicAuth()
+
+
+def _configure_logging(app):
+    # set logger
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s: [in %(pathname)s:%(lineno)d] \t%(message)s')
+    ch.setFormatter(formatter)
+    app.logger.removeHandler('debug')
+    for hdlr in app.logger.handlers:
+        app.logger.removeHandler(hdlr)
+
+    app.logger.addHandler(ch)
 
 
 def create_app(config_name):
@@ -14,6 +33,7 @@ def create_app(config_name):
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
+    _configure_logging(app)
 
     @app.errorhandler(404)
     def not_found(error):
@@ -22,6 +42,7 @@ def create_app(config_name):
     @app.route('/bucketlists/', methods=['POST', 'GET'])
     def bucketlists():
         from app.models import BucketList
+        app.logger.info("inside get bucket lists");
         if request.method == "POST":
             name = str(request.json.get('name', ''))
             if name:
@@ -167,5 +188,15 @@ def create_app(config_name):
         if form.validate():
             return jsonify(form.user), 200
         return jsonify(form.errors), 401
+
+    @app.route('/index')
+    @auth.login_required
+    def index():
+        return "Hello, %s!" % auth.username()
+
+    @app.route('/some')
+    def some():
+        some = SomeObject('x', 'y', 'z')
+        return jsonify(some.__dict__), 200
 
     return app
